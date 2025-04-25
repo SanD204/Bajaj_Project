@@ -1,33 +1,32 @@
+
 # Mutual Followers Challenge
 
-A Spring Boot application that automatically interacts with a remote API at startup, processes data, and submits results to a webhook.
+A Spring Boot application designed to interact with a remote API upon startup, process specific social graph problems, and submit results using secure webhooks.
 
-## Features
+## Key Highlights
 
-- Calls the `/generateWebhook` endpoint at application startup
-- Solves the assigned problem based on the registration number:
-  - Question 1 (odd regNo): Identifies mutual follow pairs
-  - Question 2 (even regNo): Finds nth-level followers
-- Sends the results to the provided webhook with JWT authentication
-- Implements retry logic (up to 4 attempts) for webhook submission
+- Automatically triggers a POST request to the `/generateWebhook` endpoint on startup  
+- Dynamically solves one of two problems depending on the registration number:
+  - **Odd regNo**: Detects mutual follower relationships
+  - **Even regNo**: Determines nth-level connections
+- Posts results to a webhook using JWT-based authorization
+- Built-in retry mechanism with up to 4 attempts for reliable delivery
 
-## Implementation Details
+## Workflow Overview
 
-### Flow
+1. When the application starts, it initiates a request to fetch webhook information.
+2. The server response includes a target webhook URL, access token, and a data payload.
+3. The app identifies which task to execute based on the registration number's parity (odd/even).
+4. After solving the assigned problem, it formats the output as required.
+5. The final response is posted to the webhook with the appropriate JWT token in the request header.
 
-1. On startup, the application makes a POST request to the webhook generation endpoint
-2. The response includes a webhook URL, access token, and problem data
-3. The application determines which problem to solve based on the registration number
-4. The problem is solved, and the result is formatted according to requirements
-5. The result is posted to the webhook URL with the access token in the Authorization header
+## Problem Definitions
 
-### Problems
+### Task 1: Mutual Followers (For Odd regNo)
 
-#### Question 1: Mutual Followers
+Finds all user pairs that follow each other. Each pair is presented as `[min, max]` to maintain consistency.
 
-Identifies mutual follow pairs where both users follow each other. Output is in the format of `[min, max]` pairs.
-
-Example:
+**Example Output:**
 ```json
 {
   "regNo": "REG12347",
@@ -35,51 +34,51 @@ Example:
 }
 ```
 
-#### Question 2: Nth-Level Followers
+### Task 2: Nth-Level Followers (For Even regNo)
 
-Given a start ID and nth level, returns user IDs that are exactly n levels away in the "follows" list.
+Starting from a given user ID, traverses the graph to return all users who are exactly `n` levels deep in the follower chain.
 
-Example:
+**Example Output:**
 ```json
 {
-  "regNo": "REG12347",
+  "regNo": "REG12348",
   "outcome": [4, 5]
 }
 ```
 
-## Prerequisites
+## Requirements
 
-- Java 17 or higher
-- Maven 3.6 or higher
+- Java 17 or newer  
+- Maven 3.6+
 
-## Running the Application
+## How to Run
 
-Build and run the application with:
+Compile and launch the application using the following commands:
 
 ```bash
 mvn clean install
 mvn spring-boot:run
 ```
 
-The application will automatically:
-1. Call the webhook generation endpoint
-2. Process the data
-3. Send the result to the provided webhook
+On startup, the app will:
+1. Contact the webhook service
+2. Solve the designated problem
+3. Submit the output securely
 
-## Configuration
+## Configuration Settings
 
-Configuration options in `application.properties`:
+Set the following properties in `application.properties`:
 
 ```properties
-# API configuration
+# Base API endpoint and registration details
 api.base-url=https://bfhldevapigw.healthrx.co.in/hiring
 api.registration.name=John Doe
 api.registration.regNo=REG12347
 api.registration.email=john@example.com
 
-# Retry configuration 
+# Retry settings for webhook submission
 spring.retry.max-attempts=4
 spring.retry.initial-interval=1000
 spring.retry.multiplier=1.5
 spring.retry.max-interval=10000
-``` 
+```
